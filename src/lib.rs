@@ -24,224 +24,146 @@
     unused_import_braces,
     unused_qualifications,
     unused_results,
-    trivial_numeric_casts,
-    unreachable_pub,
-    unused_extern_crates,
-    unused_import_braces,
-    unused_qualifications,
-    unused_results,
     deprecated,
-    unconditional_recursion,
     unknown_lints,
     unreachable_code,
-    unused_mut
+    unused_mut,
+    unreachable_pub
 )]
 
+#[cfg(any(
+    feature = "abuse",
+    feature = "drugs",
+    feature = "fraud",
+    feature = "gambling",
+    feature = "malware",
+    feature = "phishing",
+    feature = "piracy",
+    feature = "porn",
+    feature = "ransomware",
+    feature = "redirect",
+    feature = "scam",
+    feature = "torrent",
+    feature = "tracking",
+    feature = "ads",
+    feature = "everything"
+))]
 use fst::Set;
+#[cfg(any(
+    feature = "abuse",
+    feature = "drugs",
+    feature = "fraud",
+    feature = "gambling",
+    feature = "malware",
+    feature = "phishing",
+    feature = "piracy",
+    feature = "porn",
+    feature = "ransomware",
+    feature = "redirect",
+    feature = "scam",
+    feature = "torrent",
+    feature = "tracking",
+    feature = "ads",
+    feature = "everything"
+))]
 use once_cell::sync::Lazy;
 
-static FST_DRUGS: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/blocklist-drugs.fst"));
+macro_rules! define_blocklist {
+    ($feature:literal, $fst:ident, $links:ident, $fn_name:ident, $name:literal) => {
+        #[cfg(feature = $feature)]
+        static $fst: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/blocklist-", $name, ".fst"));
 
-/// Finite set machine of drugs links based on blocklistproject
-pub static BLOCKLIST_DRUGS_LINKS: Lazy<Set<&[u8]>> =
-    Lazy::new(|| Set::new(FST_DRUGS).expect("valid"));
+        #[cfg(feature = $feature)]
+        #[doc = "Finite set machine of "]
+        #[doc = $name]
+        #[doc = " links based on blocklistproject"]
+        pub static $links: Lazy<Set<&[u8]>> = Lazy::new(|| Set::new($fst).expect("valid"));
 
-/// Check if domain is an drugs type of link
-///
-/// Note that parsing domain is not a part of this crate
-/// you should use some other crate for that, e.g.: URL.
-pub fn is_drugs(domain: &str) -> bool {
-    BLOCKLIST_DRUGS_LINKS.contains(&domain)
+        #[cfg(feature = $feature)]
+        #[doc = "Check if domain is a "]
+        #[doc = $name]
+        #[doc = " type of link"]
+        ///
+        /// Note that parsing domain is not a part of this crate
+        /// you should use some other crate for that, e.g.: URL.
+        pub fn $fn_name(domain: &str) -> bool {
+            $links.contains(&domain)
+        }
+    };
 }
 
-static FST_ABUSE: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/blocklist-abuse.fst"));
+define_blocklist!("abuse", FST_ABUSE, BLOCKLIST_ABUSE_LINKS, is_abuse, "abuse");
+define_blocklist!("drugs", FST_DRUGS, BLOCKLIST_DRUGS_LINKS, is_drugs, "drugs");
+define_blocklist!("fraud", FST_FRAUD, BLOCKLIST_FRAUD_LINKS, is_fraud, "fraud");
+define_blocklist!(
+    "gambling",
+    FST_GAMBLING,
+    BLOCKLIST_GAMBLING_LINKS,
+    is_gambling,
+    "gambling"
+);
+define_blocklist!(
+    "malware",
+    FST_MALWARE,
+    BLOCKLIST_MALWARE_LINKS,
+    is_malware,
+    "malware"
+);
+define_blocklist!(
+    "phishing",
+    FST_PHISHING,
+    BLOCKLIST_PHISHING_LINKS,
+    is_phishing,
+    "phishing"
+);
+define_blocklist!(
+    "piracy",
+    FST_PIRACY,
+    BLOCKLIST_PIRACY_LINKS,
+    is_piracy,
+    "piracy"
+);
+define_blocklist!("porn", FST_PORN, BLOCKLIST_PORN_LINKS, is_porn, "porn");
+define_blocklist!(
+    "ransomware",
+    FST_RANSOMWARE,
+    BLOCKLIST_RANSOMWARE_LINKS,
+    is_ransomware,
+    "ransomware"
+);
+define_blocklist!(
+    "redirect",
+    FST_REDIRECT,
+    BLOCKLIST_REDIRECT_LINKS,
+    is_redirect,
+    "redirect"
+);
+define_blocklist!("scam", FST_SCAM, BLOCKLIST_SCAM_LINKS, is_scam, "scam");
+define_blocklist!(
+    "torrent",
+    FST_TORRENT,
+    BLOCKLIST_TORRENT_LINKS,
+    is_torrent,
+    "torrent"
+);
+define_blocklist!(
+    "tracking",
+    FST_TRACKING,
+    BLOCKLIST_TRACKING_LINKS,
+    is_tracking,
+    "tracking"
+);
+define_blocklist!("ads", FST_ADS, BLOCKLIST_ADS_LINKS, is_advertisement, "ads");
 
-/// Finite set machine of abuse links based on blocklistproject
-pub static BLOCKLIST_ABUSE_LINKS: Lazy<Set<&[u8]>> =
-    Lazy::new(|| Set::new(FST_ABUSE).expect("valid"));
-
-/// Check if domain is an abuse type of link
-///
-/// Note that parsing domain is not a part of this crate
-/// you should use some other crate for that, e.g.: URL.
-pub fn is_abuse(domain: &str) -> bool {
-    BLOCKLIST_ABUSE_LINKS.contains(&domain)
-}
-
-static FST_FRAUD: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/blocklist-fraud.fst"));
-
-/// Finite set machine of fraud links based on blocklistproject
-pub static BLOCKLIST_FRAUD_LINKS: Lazy<Set<&[u8]>> =
-    Lazy::new(|| Set::new(FST_FRAUD).expect("valid"));
-
-/// Check if domain is an fraud type of link
-///
-/// Note that parsing domain is not a part of this crate
-/// you should use some other crate for that, e.g.: URL.
-pub fn is_fraud(domain: &str) -> bool {
-    BLOCKLIST_FRAUD_LINKS.contains(&domain)
-}
-
-static FST_GAMBLING: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/blocklist-gambling.fst"));
-
-/// Finite set machine of gambling links based on blocklistproject
-pub static BLOCKLIST_GAMBLING_LINKS: Lazy<Set<&[u8]>> =
-    Lazy::new(|| Set::new(FST_GAMBLING).expect("valid"));
-
-/// Check if domain is an gambling type of link
-///
-/// Note that parsing domain is not a part of this crate
-/// you should use some other crate for that, e.g.: URL.
-pub fn is_gambling(domain: &str) -> bool {
-    BLOCKLIST_GAMBLING_LINKS.contains(&domain)
-}
-
-static FST_MALWARE: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/blocklist-malware.fst"));
-
-/// Finite set machine of malware links based on blocklistproject
-pub static BLOCKLIST_MALWARE_LINKS: Lazy<Set<&[u8]>> =
-    Lazy::new(|| Set::new(FST_MALWARE).expect("valid"));
-
-/// Check if domain is an malware type of link
-///
-/// Note that parsing domain is not a part of this crate
-/// you should use some other crate for that, e.g.: URL.
-pub fn is_malware(domain: &str) -> bool {
-    BLOCKLIST_MALWARE_LINKS.contains(&domain)
-}
-
-static FST_PHISHING: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/blocklist-phishing.fst"));
-
-/// Finite set machine of phishing links based on blocklistproject
-pub static BLOCKLIST_PHISHING_LINKS: Lazy<Set<&[u8]>> =
-    Lazy::new(|| Set::new(FST_PHISHING).expect("valid"));
-
-/// Check if domain is an phishing type of link
-///
-/// Note that parsing domain is not a part of this crate
-/// you should use some other crate for that, e.g.: URL.
-pub fn is_phishing(domain: &str) -> bool {
-    BLOCKLIST_PHISHING_LINKS.contains(&domain)
-}
-
-static FST_PIRACY: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/blocklist-piracy.fst"));
-
-/// Finite set machine of piracy links based on blocklistproject
-pub static BLOCKLIST_PIRACY_LINKS: Lazy<Set<&[u8]>> =
-    Lazy::new(|| Set::new(FST_PIRACY).expect("valid"));
-
-/// Check if domain is an piracy type of link
-///
-/// Note that parsing domain is not a part of this crate
-/// you should use some other crate for that, e.g.: URL.
-pub fn is_piracy(domain: &str) -> bool {
-    BLOCKLIST_PIRACY_LINKS.contains(&domain)
-}
-
-static FST_PORN: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/blocklist-porn.fst"));
-
-/// Finite set machine of porn links based on blocklistproject
-pub static BLOCKLIST_PORN_LINKS: Lazy<Set<&[u8]>> =
-    Lazy::new(|| Set::new(FST_PORN).expect("valid"));
-
-/// Check if domain is an porn type of link
-///
-/// Note that parsing domain is not a part of this crate
-/// you should use some other crate for that, e.g.: URL.
-pub fn is_porn(domain: &str) -> bool {
-    BLOCKLIST_PORN_LINKS.contains(&domain)
-}
-
-static FST_RANSOMWARE: &[u8] =
-    include_bytes!(concat!(env!("OUT_DIR"), "/blocklist-ransomware.fst"));
-
-/// Finite set machine of ransomware links based on blocklistproject
-pub static BLOCKLIST_RANSOMWARE_LINKS: Lazy<Set<&[u8]>> =
-    Lazy::new(|| Set::new(FST_RANSOMWARE).expect("valid"));
-
-/// Check if domain is an ransomware type of link
-///
-/// Note that parsing domain is not a part of this crate
-/// you should use some other crate for that, e.g.: URL.
-pub fn is_ransomware(domain: &str) -> bool {
-    BLOCKLIST_RANSOMWARE_LINKS.contains(&domain)
-}
-
-static FST_REDIRECT: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/blocklist-redirect.fst"));
-
-/// Finite set machine of redirect links based on blocklistproject
-pub static BLOCKLIST_REDIRECT_LINKS: Lazy<Set<&[u8]>> =
-    Lazy::new(|| Set::new(FST_REDIRECT).expect("valid"));
-
-/// Check if domain is an redirect type of link
-///
-/// Note that parsing domain is not a part of this crate
-/// you should use some other crate for that, e.g.: URL.
-pub fn is_redirect(domain: &str) -> bool {
-    BLOCKLIST_REDIRECT_LINKS.contains(&domain)
-}
-
-static FST_SCAM: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/blocklist-scam.fst"));
-
-/// Finite set machine of scam links based on blocklistproject
-pub static BLOCKLIST_SCAM_LINKS: Lazy<Set<&[u8]>> =
-    Lazy::new(|| Set::new(FST_SCAM).expect("valid"));
-
-/// Check if domain is an scam type of link
-///
-/// Note that parsing domain is not a part of this crate
-/// you should use some other crate for that, e.g.: URL.
-pub fn is_scam(domain: &str) -> bool {
-    BLOCKLIST_SCAM_LINKS.contains(&domain)
-}
-
-static FST_TORRENT: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/blocklist-torrent.fst"));
-
-/// Finite set machine of torrent links based on blocklistproject
-pub static BLOCKLIST_TORRENT_LINKS: Lazy<Set<&[u8]>> =
-    Lazy::new(|| Set::new(FST_TORRENT).expect("valid"));
-
-/// Check if domain is an torrent type of link
-///
-/// Note that parsing domain is not a part of this crate
-/// you should use some other crate for that, e.g.: URL.
-pub fn is_torrent(domain: &str) -> bool {
-    BLOCKLIST_TORRENT_LINKS.contains(&domain)
-}
-
-static FST_TRACKING: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/blocklist-tracking.fst"));
-
-/// Finite set machine of tracking links based on blocklistproject
-pub static BLOCKLIST_TRACKING_LINKS: Lazy<Set<&[u8]>> =
-    Lazy::new(|| Set::new(FST_TRACKING).expect("valid"));
-
-/// Check if domain is an tracking type of link
-///
-/// Note that parsing domain is not a part of this crate
-/// you should use some other crate for that, e.g.: URL.
-pub fn is_tracking(domain: &str) -> bool {
-    BLOCKLIST_TRACKING_LINKS.contains(&domain)
-}
-
-static FST_ADS: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/blocklist-ads.fst"));
-
-/// Finite set machine of ads links based on blocklistproject
-pub static BLOCKLIST_ADS_LINKS: Lazy<Set<&[u8]>> = Lazy::new(|| Set::new(FST_ADS).expect("valid"));
-
-/// Check if domain is an ads type of link
-///
-/// Note that parsing domain is not a part of this crate
-/// you should use some other crate for that, e.g.: URL.
-pub fn is_advertisement(domain: &str) -> bool {
-    BLOCKLIST_ADS_LINKS.contains(&domain)
-}
-
+#[cfg(feature = "everything")]
 static FST_ALL: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/blocklist-all.fst"));
 
-/// Finite set machine of all links based on blocklistproject
+#[cfg(feature = "everything")]
+/// Finite set machine of all enabled blocklists based on blocklistproject
 pub static BLOCKLIST_ALL_LINKS: Lazy<Set<&[u8]>> = Lazy::new(|| Set::new(FST_ALL).expect("valid"));
 
-/// Check if domain is an all type of link
+#[cfg(feature = "everything")]
+/// Check if domain is in all enabled blocklist types
 ///
 /// Note that parsing domain is not a part of this crate
 /// you should use some other crate for that, e.g.: URL.
@@ -251,25 +173,26 @@ pub fn is_everything(domain: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
+    #[cfg(feature = "ads")]
     #[test]
     fn test_is_advertisement() {
-        assert!(is_advertisement("000lp59.wcomhost.com"));
-        assert!(is_advertisement("3003809.fls.doubleclick.net"));
-        assert!(is_advertisement("mini6g.com"));
-        assert!(!is_advertisement("example.com"));
+        assert!(super::is_advertisement("000lp59.wcomhost.com"));
+        assert!(super::is_advertisement("3003809.fls.doubleclick.net"));
+        assert!(super::is_advertisement("mini6g.com"));
+        assert!(!super::is_advertisement("example.com"));
     }
 
+    #[cfg(feature = "drugs")]
     #[test]
     fn test_is_drugs() {
-        assert!(is_drugs("123clickcash.com"));
+        assert!(super::is_drugs("123clickcash.com"));
     }
 
+    #[cfg(feature = "everything")]
     #[test]
     fn test_is_everything() {
-        assert!(is_everything("123clickcash.com"));
-        assert!(is_everything("3003809.fls.doubleclick.net"));
-        assert!(!is_everything("example.com"));
+        assert!(super::is_everything("123clickcash.com"));
+        assert!(super::is_everything("3003809.fls.doubleclick.net"));
+        assert!(!super::is_everything("example.com"));
     }
 }

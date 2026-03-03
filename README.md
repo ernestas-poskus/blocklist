@@ -2,6 +2,22 @@
 
 The project is based on blocklistproject. It provides perfect hash map/set structures for fast lookup of blocklisted items.
 
+## Features
+
+Each blocklist type is now behind its own Cargo feature:
+`abuse`, `drugs`, `fraud`, `gambling`, `malware`, `phishing`, `piracy`, `porn`, `ransomware`, `redirect`, `scam`, `torrent`, `tracking`, `ads`.
+
+The `everything` feature controls `is_everything` and builds an aggregate set from whichever type features are enabled.
+
+Default features enable all blocklist type features plus `everything`, preserving previous behavior.
+
+Example with only ads and phishing:
+
+```toml
+[dependencies]
+blocklist = { version = "0.3", default-features = false, features = ["ads", "phishing", "everything"] }
+```
+
 ```rust,no_run
 // Abuse
 // https://blocklistproject.github.io/Lists/alt-version/abuse-nl.txt

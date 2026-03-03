@@ -4,6 +4,22 @@ use std::path::Path;
 use std::{env, io};
 
 pub type GenericError = Box<dyn std::error::Error + Send + Sync>;
+const BLOCKLIST_TYPES: [&str; 14] = [
+    "abuse",
+    "drugs",
+    "fraud",
+    "gambling",
+    "malware",
+    "phishing",
+    "piracy",
+    "porn",
+    "ransomware",
+    "redirect",
+    "scam",
+    "torrent",
+    "tracking",
+    "ads",
+];
 
 async fn fetch_list(name: &str) -> Result<Vec<String>, GenericError> {
     let response: String = reqwest::Client::new()
@@ -48,33 +64,35 @@ fn build_set_file(name: &str, list: Vec<String>) -> Result<(), GenericError> {
 
 #[tokio::main]
 async fn main() -> Result<(), GenericError> {
-    let blocked = vec![
-        "abuse",
-        "drugs",
-        "fraud",
-        "gambling",
-        "malware",
-        "phishing",
-        "piracy",
-        "porn",
-        "ransomware",
-        "redirect",
-        "scam",
-        "torrent",
-        "tracking",
-        "ads",
-    ];
+    for kind in BLOCKLIST_TYPES {
+        println!(
+            "cargo:rerun-if-env-changed=CARGO_FEATURE_{}",
+            kind.to_ascii_uppercase()
+        );
+    }
+    println!("cargo:rerun-if-env-changed=CARGO_FEATURE_EVERYTHING");
 
     let mut global_list = Vec::new();
+    let mut enabled_blocklists = 0usize;
 
-    for item in blocked.iter() {
-        global_list.append(&mut fetch_list(item).await?);
+    for item in BLOCKLIST_TYPES {
+        let feature_name = format!("CARGO_FEATURE_{}", item.to_ascii_uppercase());
+        if env::var_os(feature_name).is_some() {
+            enabled_blocklists += 1;
+            global_list.append(&mut fetch_list(item).await?);
+        }
     }
 
-    global_list.sort();
-    global_list.dedup();
+    if env::var_os("CARGO_FEATURE_EVERYTHING").is_some() {
+        if enabled_blocklists == 0 {
+            return Err("feature `everything` requires at least one blocklist type feature".into());
+        }
 
-    build_set_file("all", global_list)?;
+        global_list.sort();
+        global_list.dedup();
+
+        build_set_file("all", global_list)?;
+    }
 
     Ok(())
 }
