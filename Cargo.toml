@@ -26,6 +26,6 @@ default-features = false
 features = ["rt-multi-thread", "macros"]
 
 [build-dependencies.reqwest]
-version = "0.11.18"
+version = "0.13"
 default-features = false
-features = ["rustls-tls", "gzip", "json"]
+features = ["rustls", "gzip", "json"]
